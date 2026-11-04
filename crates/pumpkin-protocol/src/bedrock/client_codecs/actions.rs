@@ -128,13 +128,17 @@ fn respawning_matches_the_official_client() {
 
 #[test]
 fn swinging_matches_the_official_client() {
-    for fixture in [
+    for capture in [
         &include_bytes!("fixtures/animate-swing_build.bin")[..],
         &include_bytes!("fixtures/animate-swing_mine.bin")[..],
     ] {
-        let packet: SAnimate = golden(fixture);
+        // These are 1.26.52's. 1.26.60 adds the hand at the end, 0 for the main hand,
+        // as upstream's own test has it, until a 1.26.60 capture replaces them.
+        let fixture = [capture, &[0]].concat();
+        let packet: SAnimate = golden(&fixture);
         assert_eq!(packet.action, AnimateAction::SwingArm);
         assert_eq!(packet.target_actor_runtime_id, VarULong(1));
+        assert_eq!(packet.hand, 0);
     }
 }
 

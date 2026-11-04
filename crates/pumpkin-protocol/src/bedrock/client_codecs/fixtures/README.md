@@ -4,6 +4,9 @@ Packets sent by the official Bedrock client, used to check that the `client` fea
 produce exactly what the real client sends.
 
 - **Client:** official Bedrock 1.26.52 (Windows), protocol 2193.
+  - **Since the fork took 1.26.60 (protocol 2225, 2026-11-04),** a packet that changed is adjusted in
+    its test until a 1.26.60 capture replaces it. So far that's only `Animate`, which gained the hand
+    at the end.
 - **Contents:** each file is one packet body after decompression, with no length prefix and no
   packet header. That is exactly what `PacketRead::read` and `PacketWrite::write` handle.
 - **Captured** with a temporary hook in `BedrockClient::process_batch` that was never committed,
