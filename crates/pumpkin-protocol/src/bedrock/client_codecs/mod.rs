@@ -291,6 +291,7 @@ mod tests {
             target_actor_id: VarLong(-42),
             target_runtime_id: VarULong(42),
             actor_type: "minecraft:cow".to_string(),
+            passenger_of_block: None,
             position: Vector3::new(-10.5, 64.0, 3.25),
             velocity: Vector3::new(0.1, -0.08, 0.0),
             rotation: Vector2::new(12.0, 270.0),
@@ -328,6 +329,7 @@ mod tests {
         let read = round_trip(&CAddPlayer {
             uuid: Uuid::from_u128(0x0123_4567_89ab_cdef_0123_4567_89ab_cdef),
             player_name: "Guest".to_string(),
+            passenger_of_block: None,
             target_runtime_id: VarULong(5),
             platform_chat_id: "chat".to_string(),
             position: Vector3::new(1.5, 65.62, -2.5),

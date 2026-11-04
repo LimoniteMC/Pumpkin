@@ -1,6 +1,8 @@
 use pumpkin_macros::packet;
 use pumpkin_util::math::{position::BlockPos, vector3::Vector3};
 
+#[cfg(feature = "client")]
+use crate::serial::PacketRead;
 use crate::{codec::var_long::VarLong, serial::PacketWrite};
 
 /// Pose/emote the entity displays while riding the block.
@@ -14,6 +16,7 @@ pub enum PassengerOfBlockEmote {
 
 /// Data for a block that an entity is riding.
 #[derive(Clone, Debug, PartialEq, PacketWrite)]
+#[cfg_attr(feature = "client", derive(PacketRead))]
 pub struct PassengerOfBlockData {
     /// World position of the block.
     pub block_position: BlockPos,

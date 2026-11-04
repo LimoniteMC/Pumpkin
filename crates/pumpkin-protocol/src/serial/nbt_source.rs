@@ -51,8 +51,7 @@ impl<'a, R: Read> NbtDataSource<'a> for ReadSource<'_, R> {
     fn read_string(&mut self, len: usize) -> pumpkin_nbt::deserializer::Result<Cow<'a, str>> {
         let mut buf = vec![0u8; len];
         self.read_bytes(&mut buf)?;
-        let string =
-            cesu8::from_java_cesu8(&buf).map_err(|_| pumpkin_nbt::Error::Cesu8DecodingError)?;
+        let string = pumpkin_nbt::cesu8::from_java_cesu8(&buf)?;
         Ok(Cow::Owned(string.into_owned()))
     }
 
