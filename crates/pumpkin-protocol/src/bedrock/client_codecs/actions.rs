@@ -1,5 +1,6 @@
 //! Golden tests for the player's actions whose writers are derives beside
-//! their structs, against the official client's packets from the M5 capture.
+//! their structs, against the official client's packets from the M5 capture
+//! and Step 12's.
 //!
 //! Each fixture is read with Pumpkin's reader and written back with ours, and
 //! the bytes must match exactly. Commands and chat carry the player's identity,
@@ -17,10 +18,12 @@ use crate::{
         animate::{AnimateAction, SAnimate},
         block_pick_request::SBlockPickRequest,
         command_request::{CommandOriginData, SCommandRequest},
+        cursor_item_drag::{CURSOR_ITEM_DRAG_START, CURSOR_ITEM_DRAG_STOP, SCursorItemDrag},
         interact::{Action, SInteract},
         mob_equipment::SMobEquipment,
         player_action::{PlayerActionType, SPlayerAction},
         respawn::{RespawnState, SRespawn},
+        set_player_inventory_options::SSetPlayerInventoryOptions,
         text::{SText, TextPacketType},
     },
     codec::{var_int::VarInt, var_ulong::VarULong},
@@ -128,18 +131,36 @@ fn respawning_matches_the_official_client() {
 
 #[test]
 fn swinging_matches_the_official_client() {
-    for capture in [
-        &include_bytes!("fixtures/animate-swing_build.bin")[..],
-        &include_bytes!("fixtures/animate-swing_mine.bin")[..],
-    ] {
-        // These are 1.26.52's. 1.26.60 adds the hand at the end, 0 for the main hand,
-        // as upstream's own test has it, until a 1.26.60 capture replaces them.
-        let fixture = [capture, &[0]].concat();
-        let packet: SAnimate = golden(&fixture);
+    // The swing while mining is 1.26.60's, which ends with the hand: 0, the main hand.
+    // The one while building is 1.26.52's, since Step 12's capture placed nothing, so the
+    // hand is added to it.
+    let build = [&include_bytes!("fixtures/animate-swing_build.bin")[..], &[0]].concat();
+    for fixture in [&build[..], &include_bytes!("fixtures/animate-swing_mine.bin")[..]] {
+        let packet: SAnimate = golden(fixture);
         assert_eq!(packet.action, AnimateAction::SwingArm);
         assert_eq!(packet.target_actor_runtime_id, VarULong(1));
         assert_eq!(packet.hand, 0);
     }
+}
+
+#[test]
+fn a_drag_matches_the_official_client() {
+    // Around each click that puts the cursor's stack down: start, then stop.
+    let start: SCursorItemDrag = golden(include_bytes!("fixtures/cursor_item_drag-start.bin"));
+    assert_eq!(start.state, CURSOR_ITEM_DRAG_START);
+    let stop: SCursorItemDrag = golden(include_bytes!("fixtures/cursor_item_drag-stop.bin"));
+    assert_eq!(stop.state, CURSOR_ITEM_DRAG_STOP);
+}
+
+#[test]
+fn a_creative_tab_matches_the_official_client() {
+    let packet: SSetPlayerInventoryOptions =
+        golden(include_bytes!("fixtures/set_player_inventory_options.bin"));
+    // The nature tab, beside the crafting tab, in the creative layout.
+    assert_eq!(packet.left_inventory_tab, VarInt(4));
+    assert_eq!(packet.right_inventory_tab, VarInt(2));
+    assert!(!packet.filtering);
+    assert_eq!((packet.layout_inv, packet.layout_craft), (VarInt(3), VarInt(0)));
 }
 
 #[test]
